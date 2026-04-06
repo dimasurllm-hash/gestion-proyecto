@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kanban – Módulo de Pólizas Contables</title>
+<style>
+  :root {
+    --bg: #ffffff; --bg2: #f5f4f0; --bg3: #eceae3;
+    --text: #1a1a18; --text2: #5f5e5a; --text3: #888780;
+    --border: rgba(0,0,0,0.1); --border2: rgba(0,0,0,0.2);
+    --danger-bg: #fcebeb; --danger: #a32d2d;
+    --warn-bg: #faeeda; --warn: #854f0b;
+    --ok-bg: #eaf3de; --ok: #3b6d11;
+    --info-bg: #e6f1fb; --info: #185fa5;
+    --purple-bg: #eeedfe; --purple: #534ab7;
+    --radius: 8px; --radius-lg: 12px;
+    --col-w: 240px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1e1e1c; --bg2: #282826; --bg3: #323230;
+      --text: #e8e6de; --text2: #9c9a92; --text3: #6b6965;
+      --border: rgba(255,255,255,0.08); --border2: rgba(255,255,255,0.18);
+      --danger-bg: #501313; --danger: #f09595;
+      --warn-bg: #412402; --warn: #fac775;
+      --ok-bg: #173404; --ok: #c0dd97;
+      --info-bg: #042c53; --info: #85b7eb;
+      --purple-bg: #26215c; --purple: #afa9ec;
+    }
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: var(--bg3); color: var(--text); font-size: 14px; min-height: 100vh; }
+  .topbar { background: var(--bg); border-bottom: 0.5px solid var(--border2); padding: .75rem 1.5rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: .75rem; position: sticky; top: 0; z-index: 10; }
+  .topbar h1 { font-size: 15px; font-weight: 500; }
+  .topbar .sub { font-size: 12px; color: var(--text2); margin-top: 2px; }
+  .filters { display: flex; gap: 6px; flex-wrap: wrap; }
+  .btn { font-size: 12px; padding: 4px 10px; border: 0.5px solid var(--border2); border-radius: 20px; background: transparent; color: var(--text2); cursor: pointer; font-family: inherit; transition: background .1s; }
+  .btn:hover, .btn.active { background: var(--bg2); color: var(--text); }
+  .badge { font-size: 11px; padding: 2px 8px; border-radius: 20px; font-weight: 500; white-space: nowrap; }
+  .b-algo { background: var(--purple-bg); color: var(--purple); }
+  .b-bd { background: var(--ok-bg); color: var(--ok); }
+  .b-ui { background: var(--info-bg); color: var(--info); }
+  .b-ti { background: var(--danger-bg); color: var(--danger); }
+  .b-sat { background: var(--warn-bg); color: var(--warn); }
+  .risk-alto { background: var(--danger-bg); color: var(--danger); }
+  .risk-medio { background: var(--warn-bg); color: var(--warn); }
+  .risk-bajo { background: var(--ok-bg); color: var(--ok); }
+  .board { display: flex; gap: 12px; padding: 1.25rem 1.5rem; overflow-x: auto; min-height: calc(100vh - 80px); align-items: flex-start; }
+  .col { background: var(--bg2); border-radius: var(--radius-lg); border: 0.5px solid var(--border); width: var(--col-w); min-width: var(--col-w); flex-shrink: 0; display: flex; flex-direction: column; max-height: calc(100vh - 110px); }
+  .col-header { padding: .75rem 1rem .5rem; border-bottom: 0.5px solid var(--border); flex-shrink: 0; }
+  .col-title { font-size: 13px; font-weight: 500; display: flex; align-items: center; justify-content: space-between; }
+  .col-count { font-size: 12px; color: var(--text3); font-weight: 400; }
+  .col-desc { font-size: 11px; color: var(--text3); margin-top: 3px; }
+  .col-body { padding: .5rem; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; }
+  .card { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius); padding: .75rem; cursor: pointer; transition: border-color .15s; position: relative; }
+  .card:hover { border-color: var(--border2); }
+  .card.blocked { border-left: 3px solid var(--danger); }
+  .card.milestone { border-left: 3px solid var(--purple); }
+  .card-title { font-size: 12px; font-weight: 500; line-height: 1.4; margin-bottom: 5px; }
+  .card-meta { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 5px; }
+  .card-who { font-size: 11px; color: var(--text3); margin-top: 3px; }
+  .card-dates { font-size: 11px; color: var(--text3); margin-top: 2px; }
+  .card-note { font-size: 11px; color: var(--text2); margin-top: 6px; padding-top: 6px; border-top: 0.5px solid var(--border); line-height: 1.5; display: none; }
+  .card.expanded .card-note { display: block; }
+  .card-risk { display: flex; align-items: center; gap: 5px; margin-top: 5px; font-size: 11px; }
+  .expand-hint { font-size: 10px; color: var(--text3); position: absolute; bottom: 6px; right: 8px; }
+  .col-backlog .col-header { border-top: 3px solid #888780; border-radius: var(--radius-lg) var(--radius-lg) 0 0; }
+  .col-progress .col-header { border-top: 3px solid #185fa5; border-radius: var(--radius-lg) var(--radius-lg) 0 0; }
+  .col-review .col-header { border-top: 3px solid #854f0b; border-radius: var(--radius-lg) var(--radius-lg) 0 0; }
+  .col-blocked .col-header { border-top: 3px solid #a32d2d; border-radius: var(--radius-lg) var(--radius-lg) 0 0; }
+  .col-done .col-header { border-top: 3px solid #3b6d11; border-radius: var(--radius-lg) var(--radius-lg) 0 0; }
+  .footer { padding: .75rem 1.5rem; font-size: 11px; color: var(--text3); display: flex; justify-content: space-between; border-top: 0.5px solid var(--border); background: var(--bg); }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div>
+    <h1>Tablero Kanban — Módulo de pólizas contables</h1>
+    <div class="sub">Área contabilidad · Dist. Maquinaria del Sur · <span id="fecha"></span></div>
+  </div>
+  <div class="filters">
+    <button class="btn active" onclick="applyFilter('all',this)">Todos</button>
+    <button class="btn" onclick="applyFilter('algoritmo',this)">Algoritmo</button>
+    <button class="btn" onclick="applyFilter('bd',this)">BD / catálogos</button>
+    <button class="btn" onclick="applyFilter('interfaz',this)">Interfaz</button>
+    <button class="btn" onclick="applyFilter('ti',this)">TI / DIMASIS</button>
+    <button class="btn" onclick="applyFilter('sat',this)">SAT</button>
+  </div>
+</div>
+
+<div class="board" id="board"></div>
+
+<div class="footer">
+  <span>Coordinadora: analista senior (outsourcing) · Equipo: actuaría + ingeniería en sistemas</span>
+  <span>Haz clic en cada tarjeta para ver el detalle completo</span>
+</div>
+
+<script>
+document.getElementById('fecha').textContent = new Date().toLocaleDateString('es-MX',{day:'2-digit',month:'long',year:'numeric'});
+
+const COLS = [
+  { id:'backlog',  cls:'col-backlog',  title:'Pendiente',     desc:'Por iniciar · esperando turno o dependencia' },
+  { id:'progress', cls:'col-progress', title:'En progreso',   desc:'Actividad actualmente en desarrollo' },
+  { id:'review',   cls:'col-review',   title:'En revisión',   desc:'Lista para validación con el área' },
+  { id:'blocked',  cls:'col-blocked',  title:'Bloqueada',     desc:'Requiere acción externa para avanzar' },
+  { id:'done',     cls:'col-done',     title:'Completada',    desc:'Entregada y validada' },
+];
+
+const TASKS = [
+  // BD / catálogos
+  { col:'done',     cat:'bd',        badge:'b-bd',   title:'Inserción inicial de catálogos BD',         who:'actuaría',           dates:'Mar 2026',       note:'Datos limpios de catálogos de cuentas insertados en BD local. Base para el algoritmo.' },
+  { col:'progress', cat:'bd',        badge:'b-bd',   title:'Revisión y limpieza catálogos',             who:'actuaría',           dates:'Abr S1–S3',      note:'Validar que cada cuenta tenga clave, descripción y criterio de asignación correcto.', risk:'bajo' },
+  { col:'progress', cat:'bd',        badge:'b-bd',   title:'Normalización nomenclatura cuentas',        who:'actuaría + senior',  dates:'Abr S1–S2',      note:'Estandarizar formato de claves contables para que el algoritmo las reconozca sin ambigüedad.' },
+  // Algoritmo
+  { col:'progress', cat:'algoritmo', badge:'b-algo', title:'Motor clasificador de conceptos/CFDI',      who:'sistemas + senior',  dates:'Abr S2 – May S1',note:'Lee monto + concepto del XML y asigna número de cuenta. Diferencia S01/G01/G03, contado/crédito, con/sin descuento.', risk:'medio' },
+  { col:'backlog',  cat:'algoritmo', badge:'b-algo', title:'Reglas por uso CFDI y tipo cliente',        who:'sistemas',           dates:'Abr S3 – May S2',note:'Lógica diferenciada para clientes con RFC vs XAXX, crédito vs contado, múltiples sucursales.' },
+  { col:'backlog',  cat:'algoritmo', badge:'b-algo', title:'Generador de póliza descargable',           who:'sistemas',           dates:'May S1–S3',      note:'Salida final en Excel o PDF con estructura contable correcta. Los contadores lo descargan desde el dashboard.' },
+  { col:'backlog',  cat:'algoritmo', badge:'b-algo', title:'Pruebas con dataset real Feb–Mar 2026',     who:'todo el equipo',     dates:'May S3 – Jun S1',note:'200+ facturas del reporte DIMASIS. Validar asignación de cuentas, detección de descuentos comerciales y notas de crédito.', risk:'medio' },
+  { col:'backlog',  cat:'algoritmo', badge:'b-algo', title:'Revisión y ajuste con contabilidad',        who:'senior + contabilidad',dates:'Jun S1–S2',    note:'Sesiones de validación con los contadores. Ajustes al algoritmo por observaciones del área.' },
+  { col:'backlog',  cat:'algoritmo', badge:'b-algo', title:'🎯 Entrega sistema v1',                    who:'todo el equipo',     dates:'Jun S3',         note:'Sistema funcionando: clasificador + conciliación + descarga de pólizas. Hito de proyecto.', milestone:true },
+  { col:'backlog',  cat:'algoritmo', badge:'b-algo', title:'Soporte post-entrega',                      who:'senior (outsourcing)',dates:'Jul +',         note:'Ajustes menores, altas de cuentas nuevas. Objetivo: autonomía del área contable sin soporte continuo del equipo de datos.' },
+  // Interfaz
+  { col:'progress', cat:'interfaz',  badge:'b-ui',   title:'Maqueta visual concentradora',             who:'senior',             dates:'Completada base',note:'Maqueta del dashboard concentrador ya existe. Pendiente integrar con datos reales del algoritmo.' },
+  { col:'progress', cat:'interfaz',  badge:'b-ui',   title:'Interfaz alta de cuentas (contadores)',    who:'sistemas + senior',  dates:'Abr S3 – May S2',note:'UI donde los contadores agregan nuevas cuentas sin intervención del equipo de datos. Validación por área.' },
+  { col:'backlog',  cat:'interfaz',  badge:'b-ui',   title:'Integración dashboard con datos reales',   who:'sistemas',           dates:'May S1–S4',      note:'Conectar el dashboard existente con los datos del algoritmo, BD de catálogos y resultados de conciliación.' },
+  // TI
+  { col:'blocked',  cat:'ti',        badge:'b-ti',   title:'Endpoints / JSON despachador DIMASIS',     who:'Equipo TI',          dates:'Sin ETA',        note:'TI se comprometió a entregar endpoints o despachador JSON para flujo diario. Sin fecha confirmada. Bloquea validación cruzada.', blocked:true, risk:'alto' },
+  { col:'backlog',  cat:'ti',        badge:'b-ti',   title:'Integración datos DIMASIS',                who:'sistemas + senior',  dates:'May S1–S3',      note:'Consumir JSON de DIMASIS, comparar montos con catálogo SAT. Detectar diferencias entre sistemas. Depende de TI.' },
+  { col:'backlog',  cat:'ti',        badge:'b-ti',   title:'Conciliación DIMASIS vs catálogo SAT',     who:'actuaría + sistemas',dates:'May S2 – Jun S1',note:'Validar que el importe en DIMASIS cuadre con el monto declarado ante el SAT. Generar reporte de diferencias.' },
+  // SAT
+  { col:'blocked',  cat:'sat',       badge:'b-sat',  title:'Aprobación consejo — e.firma SAT',        who:'Consejo directivo',  dates:'Pendiente',      note:'Sin esta aprobación no se puede acceder al servicio de descarga masiva de XML del SAT. El resto del sistema no depende de esto.', blocked:true, risk:'alto' },
+  { col:'backlog',  cat:'sat',       badge:'b-sat',  title:'Módulo descarga masiva XML SAT',           who:'sistemas',           dates:'May S2 – Jun S1',note:'Conexión con servicio SAT, parseo de XMLs, clasificación por área. Requiere e.firma aprobada por consejo.' },
+  { col:'backlog',  cat:'sat',       badge:'b-sat',  title:'Bot scraping proveedor principal',         who:'sistemas',           dates:'May S3 – Jun S2',note:'Scrapy para obtener XML + PDF del proveedor principal automáticamente. No requiere e.firma; puede iniciar antes.' },
+];
+
+let activeFilter = 'all';
+
+function applyFilter(f, btn) {
+  activeFilter = f;
+  document.querySelectorAll('.btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderBoard();
+}
+
+function renderBoard() {
+  const board = document.getElementById('board');
+  board.innerHTML = '';
+  COLS.forEach(col => {
+    const tasks = TASKS.filter(t => t.col === col.id && (activeFilter === 'all' || t.cat === activeFilter));
+    const colEl = document.createElement('div');
+    colEl.className = 'col ' + col.cls;
+    colEl.innerHTML = `
+      <div class="col-header">
+        <div class="col-title">${col.title} <span class="col-count">${tasks.length}</span></div>
+        <div class="col-desc">${col.desc}</div>
+      </div>
+      <div class="col-body" id="col-${col.id}"></div>
+    `;
+    board.appendChild(colEl);
+    const body = colEl.querySelector('#col-' + col.id);
+    tasks.forEach((t, i) => {
+      const card = document.createElement('div');
+      card.className = 'card' + (t.blocked ? ' blocked' : '') + (t.milestone ? ' milestone' : '');
+      const riskMap = { alto:'risk-alto', medio:'risk-medio', bajo:'risk-bajo' };
+      const riskLabel = { alto:'Riesgo alto', medio:'Riesgo medio', bajo:'Riesgo bajo' };
+      card.innerHTML = `
+        <div class="card-title">${t.title}</div>
+        <div class="card-meta">
+          <span class="badge ${t.badge}">${catLabel(t.cat)}</span>
+          ${t.blocked ? '<span class="badge risk-alto">Bloqueada</span>' : ''}
+          ${t.risk && !t.blocked ? `<span class="badge ${riskMap[t.risk]}">${riskLabel[t.risk]}</span>` : ''}
+        </div>
+        <div class="card-who">👤 ${t.who}</div>
+        <div class="card-dates">📅 ${t.dates}</div>
+        <div class="card-note">${t.note}</div>
+        <div class="expand-hint">+ detalle</div>
+      `;
+      card.addEventListener('click', () => {
+        card.classList.toggle('expanded');
+        card.querySelector('.expand-hint').textContent = card.classList.contains('expanded') ? '− cerrar' : '+ detalle';
+      });
+      body.appendChild(card);
+    });
+  });
+}
+
+function catLabel(c) {
+  return {algoritmo:'Algoritmo',bd:'BD / catálogos',interfaz:'Interfaz',ti:'TI / DIMASIS',sat:'SAT'}[c] || c;
+}
+
+renderBoard();
+</script>
+</body>
+</html>
