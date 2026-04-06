@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gantt – Módulo de Pólizas Contables</title>
+<style>
+  :root {
+    --bg: #ffffff; --bg2: #f5f4f0; --bg3: #eceae3;
+    --text: #1a1a18; --text2: #5f5e5a; --text3: #888780;
+    --border: rgba(0,0,0,0.12); --border2: rgba(0,0,0,0.22);
+    --danger-bg: #fcebeb; --danger: #a32d2d;
+    --warn-bg: #faeeda; --warn: #854f0b;
+    --ok-bg: #eaf3de; --ok: #3b6d11;
+    --info-bg: #e6f1fb; --info: #185fa5;
+    --radius: 8px; --radius-lg: 12px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1e1e1c; --bg2: #282826; --bg3: #323230;
+      --text: #e8e6de; --text2: #9c9a92; --text3: #6b6965;
+      --border: rgba(255,255,255,0.1); --border2: rgba(255,255,255,0.2);
+      --danger-bg: #501313; --danger: #f09595;
+      --warn-bg: #412402; --warn: #fac775;
+      --ok-bg: #173404; --ok: #c0dd97;
+      --info-bg: #042c53; --info: #85b7eb;
+    }
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: var(--bg); color: var(--text); font-size: 14px; }
+  .page { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem; }
+  .top-bar { display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem; }
+  h1 { font-size: 18px; font-weight: 500; }
+  .subtitle { font-size: 13px; color: var(--text2); margin-top: 3px; }
+  .badge { font-size: 11px; padding: 3px 9px; border-radius: 20px; white-space: nowrap; font-weight: 500; }
+  .badge-ok { background: var(--ok-bg); color: var(--ok); }
+  .badge-warn { background: var(--warn-bg); color: var(--warn); }
+  .badge-danger { background: var(--danger-bg); color: var(--danger); }
+  .badge-info { background: var(--info-bg); color: var(--info); }
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px,1fr)); gap: 10px; margin-bottom: 1.5rem; }
+  .stat { background: var(--bg2); border-radius: var(--radius); padding: .75rem 1rem; }
+  .stat-label { font-size: 12px; color: var(--text2); margin-bottom: 4px; }
+  .stat-val { font-size: 22px; font-weight: 500; }
+  .stat-sub { font-size: 11px; color: var(--text3); margin-top: 2px; }
+  .legend { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 1rem; font-size: 12px; color: var(--text2); }
+  .leg { display: flex; align-items: center; gap: 5px; }
+  .leg-dot { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+  .controls { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 1rem; }
+  .btn { font-size: 12px; padding: 4px 11px; border: 0.5px solid var(--border2); border-radius: var(--radius); background: transparent; color: var(--text2); cursor: pointer; font-family: inherit; transition: background .1s; }
+  .btn:hover { background: var(--bg2); }
+  .btn.active { background: var(--bg3); color: var(--text); border-color: var(--border2); }
+  .scroll { overflow-x: auto; border: 0.5px solid var(--border); border-radius: var(--radius-lg); }
+  table { border-collapse: collapse; min-width: 760px; width: 100%; }
+  .th-task { text-align: left; font-size: 12px; font-weight: 500; color: var(--text2); padding: 8px 10px; border-bottom: 0.5px solid var(--border2); min-width: 180px; max-width: 220px; background: var(--bg2); position: sticky; left: 0; z-index: 2; }
+  .th-month { text-align: center; font-size: 12px; font-weight: 500; padding: 7px 4px; border-bottom: 0.5px solid var(--border); background: var(--bg2); }
+  .th-week { text-align: center; font-size: 11px; color: var(--text3); padding: 4px 2px; border-bottom: 0.5px solid var(--border2); min-width: 42px; background: var(--bg2); }
+  .td-task { padding: 5px 10px; border-bottom: 0.5px solid var(--border); font-size: 12px; background: var(--bg); position: sticky; left: 0; z-index: 1; min-width: 180px; max-width: 220px; }
+  .td-task span { display: block; font-size: 11px; color: var(--text3); margin-top: 1px; }
+  .cell { border-bottom: 0.5px solid var(--border); height: 36px; min-width: 42px; position: relative; }
+  .bar { position: absolute; top: 7px; bottom: 7px; left: 3px; right: 3px; border-radius: 3px; cursor: pointer; transition: opacity .15s; }
+  .bar:hover { opacity: .75; }
+  .blocker { position: absolute; top: 8px; bottom: 8px; left: 3px; right: 3px; border-radius: 3px; border: 1px dashed var(--border2); background: repeating-linear-gradient(45deg, var(--border), var(--border) 2px, transparent 2px, transparent 8px); }
+  .milestone { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%) rotate(45deg); width: 13px; height: 13px; border-radius: 2px; cursor: pointer; }
+  .section-row td { background: var(--bg2); font-size: 11px; font-weight: 500; color: var(--text3); padding: 4px 10px; letter-spacing: .04em; text-transform: uppercase; border-bottom: 0.5px solid var(--border); }
+  .risks { margin-top: 1.5rem; }
+  .risks h2 { font-size: 14px; font-weight: 500; margin-bottom: .75rem; }
+  .risk { display: flex; align-items: flex-start; gap: 8px; padding: 7px 0; border-bottom: 0.5px solid var(--border); font-size: 12px; color: var(--text2); }
+  .tooltip { position: fixed; background: var(--bg); border: 0.5px solid var(--border2); border-radius: var(--radius); padding: 8px 11px; font-size: 12px; pointer-events: none; display: none; z-index: 999; max-width: 240px; line-height: 1.5; }
+  .tooltip strong { display: block; font-weight: 500; color: var(--text); margin-bottom: 3px; }
+  .footer { margin-top: 2rem; font-size: 11px; color: var(--text3); display: flex; justify-content: space-between; flex-wrap: wrap; gap: .5rem; }
+  @media print {
+    .controls, .btn { display: none; }
+    .scroll { overflow: visible; }
+    table { min-width: 100%; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="top-bar">
+    <div>
+      <h1>Plan de proyecto — Módulo de pólizas contables</h1>
+      <div class="subtitle">Área contabilidad · Distribuidor de Maquinaria del Sur · Abril – Julio 2026</div>
+      <div class="subtitle" style="margin-top:4px">Coordinadora: analista senior (outsourcing) · Equipo: actuaría + ingeniería en sistemas</div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end">
+      <a href="kanban.html" style="display:inline-flex;align-items:center;gap:7px;padding:7px 14px;background:var(--text);color:var(--bg);border-radius:8px;font-size:13px;font-weight:500;text-decoration:none;transition:opacity .15s" onmouseover="this.style.opacity='.8'" onmouseout="this.style.opacity='1'">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style="flex-shrink:0"><rect x="1" y="1" width="4" height="12" rx="1.5" fill="currentColor" opacity=".9"/><rect x="7" y="1" width="4" height="8" rx="1.5" fill="currentColor" opacity=".9"/><rect x="7" y="11" width="4" height="2" rx="1" fill="currentColor" opacity=".4"/></svg>
+        Ver tablero Kanban
+      </a>
+      <span class="badge badge-ok">En progreso</span>
+      <span style="font-size:11px;color:var(--text3)" id="fecha-gen"></span>
+    </div>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><div class="stat-label">Tareas activas</div><div class="stat-val">6</div><div class="stat-sub">En progreso · Abr–May</div></div>
+    <div class="stat"><div class="stat-label">Bloqueadas externas</div><div class="stat-val">3</div><div class="stat-sub">TI + SAT + consejo</div></div>
+    <div class="stat"><div class="stat-label">Entrega objetivo</div><div class="stat-val">Jun</div><div class="stat-sub">Sistema retroalimentado v1</div></div>
+    <div class="stat"><div class="stat-label">Equipo</div><div class="stat-val">3</div><div class="stat-sub">Senior + actuaría + sistemas</div></div>
+    <div class="stat"><div class="stat-label">Empresas cubiertas</div><div class="stat-val">Multi</div><div class="stat-sub">Replicable por empresa</div></div>
+  </div>
+
+  <div class="legend">
+    <div class="leg"><div class="leg-dot" style="background:#534AB7"></div>Algoritmo / pólizas</div>
+    <div class="leg"><div class="leg-dot" style="background:#0F6E56"></div>BD / catálogos</div>
+    <div class="leg"><div class="leg-dot" style="background:#185FA5"></div>Interfaz / frontend</div>
+    <div class="leg"><div class="leg-dot" style="background:#993C1D"></div>Integración TI / DIMASIS</div>
+    <div class="leg"><div class="leg-dot" style="background:#854F0B"></div>SAT (sujeto a aprobación)</div>
+    <div class="leg"><div class="leg-dot" style="background:#888780;opacity:.5"></div>Bloqueo externo</div>
+    <div class="leg"><div class="leg-dot" style="background:#534AB7;border-radius:50%"></div>Hito de entrega</div>
+  </div>
+
+  <div class="controls">
+    <button class="btn active" onclick="filter('all',this)">Todos</button>
+    <button class="btn" onclick="filter('algoritmo',this)">Algoritmo pólizas</button>
+    <button class="btn" onclick="filter('bd',this)">BD / catálogos</button>
+    <button class="btn" onclick="filter('interfaz',this)">Interfaz</button>
+    <button class="btn" onclick="filter('ti',this)">Integración TI</button>
+    <button class="btn" onclick="filter('sat',this)">SAT</button>
+  </div>
+
+  <div class="scroll">
+  <table>
+    <thead>
+      <tr>
+        <th class="th-task">Actividad</th>
+        <th class="th-month" colspan="4">Abril 2026</th>
+        <th class="th-month" colspan="4">Mayo 2026</th>
+        <th class="th-month" colspan="4">Junio 2026</th>
+        <th class="th-month" colspan="2">Julio 2026</th>
+      </tr>
+      <tr>
+        <th class="th-task"></th>
+        <th class="th-week">S1</th><th class="th-week">S2</th><th class="th-week">S3</th><th class="th-week">S4</th>
+        <th class="th-week">S1</th><th class="th-week">S2</th><th class="th-week">S3</th><th class="th-week">S4</th>
+        <th class="th-week">S1</th><th class="th-week">S2</th><th class="th-week">S3</th><th class="th-week">S4</th>
+        <th class="th-week">S1</th><th class="th-week">S2</th>
+      </tr>
+    </thead>
+    <tbody id="gantt-body"></tbody>
+  </table>
+  </div>
+
+  <div class="risks">
+    <h2>Riesgos y dependencias clave</h2>
+    <div class="risk"><span class="badge badge-danger">Alto</span><span><strong style="color:var(--text)">Respuesta TI — endpoints DIMASIS</strong><br>Sin fecha estimada. Bloquea la validación cruzada de montos y la conciliación. Se recomienda escalar si no hay respuesta en 2 semanas.</span></div>
+    <div class="risk"><span class="badge badge-danger">Alto</span><span><strong style="color:var(--text)">Aprobación consejo — e.firma SAT</strong><br>Sin esta aprobación el módulo de descarga masiva de XML no puede iniciar. El resto del sistema no depende de esto.</span></div>
+    <div class="risk"><span class="badge badge-warn">Medio</span><span><strong style="color:var(--text)">Catálogos incompletos para nuevos clientes</strong><br>La interfaz de alta de cuentas mitiga esto, pero requiere que contabilidad valide antes de las pruebas en mayo.</span></div>
+    <div class="risk"><span class="badge badge-ok">Bajo</span><span><strong style="color:var(--text)">Cambio de criterio contable</strong><br>Mitigado con revisiones quincenales con el área de contabilidad programadas durante junio.</span></div>
+  </div>
+
+  <div class="footer">
+    <span>Distribuidor de Maquinaria del Sur · Proyecto automatización contable 2026</span>
+    <span id="fecha-footer"></span>
+  </div>
+</div>
+
+<div class="tooltip" id="tip"></div>
+
+<script>
+document.getElementById('fecha-gen').textContent = 'Generado: ' + new Date().toLocaleDateString('es-MX', {day:'2-digit',month:'long',year:'numeric'});
+document.getElementById('fecha-footer').textContent = new Date().toLocaleDateString('es-MX', {day:'2-digit',month:'long',year:'numeric'});
+
+const TASKS = [
+  {section:'Base de datos y catálogos'},
+  {label:'Revisión y limpieza de catálogos BD', sub:'Responsable: actuaría', cat:'bd', color:'#0F6E56', w:[1,1,1,0,0,0,0,0,0,0,0,0,0,0], note:'Validar catálogo limpio de cuentas cargado en BD local. Base para todo el algoritmo.'},
+  {label:'Normalización nomenclatura cuentas', sub:'Responsable: actuaría + senior', cat:'bd', color:'#0F6E56', w:[1,1,0,0,0,0,0,0,0,0,0,0,0,0], note:'Cada cuenta debe tener: clave, descripción y criterio de asignación estandarizados.'},
+  {section:'Algoritmo clasificador de pólizas'},
+  {label:'Motor clasificador de conceptos', sub:'Responsable: sistemas + senior', cat:'algoritmo', color:'#534AB7', w:[0,1,1,1,1,0,0,0,0,0,0,0,0,0], note:'Lee monto + concepto/CFDI y asigna número de cuenta según catálogo. Núcleo del sistema.'},
+  {label:'Reglas por uso CFDI y tipo de cliente', sub:'Responsable: sistemas', cat:'algoritmo', color:'#534AB7', w:[0,0,1,1,1,1,0,0,0,0,0,0,0,0], note:'Lógica diferenciada: S01 vs G01/G03, contado vs crédito, con/sin descuento comercial.'},
+  {label:'Generador de póliza descargable', sub:'Responsable: sistemas', cat:'algoritmo', color:'#534AB7', w:[0,0,0,0,1,1,1,0,0,0,0,0,0,0], note:'Salida final: archivo descargable (Excel/PDF) con estructura contable correcta para los contadores.'},
+  {label:'Pruebas con dataset real Feb–Mar 2026', sub:'Responsable: todo el equipo', cat:'algoritmo', color:'#534AB7', w:[0,0,0,0,0,0,1,1,1,0,0,0,0,0], note:'Usar las 200+ facturas del reporte de DIMASIS para validar asignación de cuentas en casos reales.'},
+  {label:'Revisión y ajuste con contabilidad', sub:'Responsable: senior + contabilidad', cat:'algoritmo', color:'#534AB7', w:[0,0,0,0,0,0,0,0,1,1,0,0,0,0], note:'Sesiones de validación con contadores. Ajustes al algoritmo según observaciones del área.'},
+  {label:'🎯 Entrega sistema v1', sub:'Hito de proyecto', cat:'algoritmo', color:'#534AB7', w:[0,0,0,0,0,0,0,0,0,0,1,0,0,0], milestone:true, note:'Sistema funcionando: clasificador + conciliación + descarga de pólizas. Entrega al área contable.'},
+  {section:'Interfaz de usuario para contadores'},
+  {label:'Interfaz alta de cuentas (contadores)', sub:'Responsable: sistemas + senior', cat:'interfaz', color:'#185FA5', w:[0,0,1,1,1,1,0,0,0,0,0,0,0,0], note:'UI donde los contadores agregan nuevas cuentas sin intervención del equipo de datos.'},
+  {label:'Dashboard concentrador integrado', sub:'Responsable: senior (maqueta previa)', cat:'interfaz', color:'#185FA5', w:[0,0,0,1,1,1,1,0,0,0,0,0,0,0], note:'Integrar maqueta visual existente con datos reales del algoritmo y la BD de catálogos.'},
+  {section:'Integración TI / DIMASIS'},
+  {label:'⏸ Esperar endpoints TI (bloqueado)', sub:'Dependencia: equipo TI', cat:'ti', color:'#888780', w:[1,1,1,1,0,0,0,0,0,0,0,0,0,0], note:'TI comprometió endpoints o despachador JSON. Sin ETA confirmada. Bloquea validación cruzada de montos.', blocker:true},
+  {label:'Integración datos DIMASIS', sub:'Responsable: sistemas + senior', cat:'ti', color:'#993C1D', w:[0,0,0,0,1,1,1,0,0,0,0,0,0,0], note:'Consumir JSON de DIMASIS, comparar montos con catálogo SAT y detectar diferencias entre sistemas.'},
+  {label:'Conciliación DIMASIS vs catálogo SAT', sub:'Responsable: actuaría + sistemas', cat:'ti', color:'#993C1D', w:[0,0,0,0,0,1,1,1,0,0,0,0,0,0], note:'Validar que el importe registrado en DIMASIS cuadre con el monto declarado ante el SAT.'},
+  {section:'Módulo SAT (sujeto a aprobación del consejo)'},
+  {label:'⏸ Esperar aprobación consejo e.firma', sub:'Dependencia: consejo directivo', cat:'sat', color:'#888780', w:[1,1,1,1,1,0,0,0,0,0,0,0,0,0], note:'Se requiere autorización del consejo para usar la e.firma y acceder al servicio de descarga masiva del SAT.', blocker:true},
+  {label:'Módulo descarga masiva XML SAT', sub:'Responsable: sistemas (si aprobado)', cat:'sat', color:'#854F0B', w:[0,0,0,0,0,1,1,1,1,0,0,0,0,0], note:'Conexión con servicio SAT, parseo de XMLs, clasificación por área y generación de reportes. Requiere e.firma.'},
+  {label:'Bot scraping proveedor principal', sub:'Responsable: sistemas (paralelo)', cat:'sat', color:'#854F0B', w:[0,0,0,0,0,0,1,1,1,1,0,0,0,0], note:'Scrapy para obtener XML+PDF del proveedor principal automáticamente. No requiere e.firma.'},
+  {section:'Soporte post-entrega'},
+  {label:'Soporte y retroalimentación', sub:'Responsable: senior (outsourcing)', cat:'algoritmo', color:'#534AB7', w:[0,0,0,0,0,0,0,0,0,0,0,1,1,1], note:'Ajustes menores, altas de nuevas cuentas, soporte reducido. Objetivo: autonomía del área contable.'},
+];
+
+const tip = document.getElementById('tip');
+
+function render(f) {
+  const body = document.getElementById('gantt-body');
+  body.innerHTML = '';
+  TASKS.forEach(t => {
+    if (t.section) {
+      if (f !== 'all') return;
+      const tr = document.createElement('tr');
+      tr.className = 'section-row';
+      const td = document.createElement('td');
+      td.colSpan = 15;
+      td.textContent = t.section;
+      tr.appendChild(td);
+      body.appendChild(tr);
+      return;
+    }
+    if (f !== 'all' && t.cat !== f) return;
+    const tr = document.createElement('tr');
+    const td0 = document.createElement('td');
+    td0.className = 'td-task';
+    td0.innerHTML = t.label + '<span>' + t.sub + '</span>';
+    tr.appendChild(td0);
+    t.w.forEach(active => {
+      const td = document.createElement('td');
+      td.className = 'cell';
+      if (active) {
+        if (t.blocker) {
+          const b = document.createElement('div');
+          b.className = 'blocker';
+          td.appendChild(b);
+        } else if (t.milestone) {
+          const m = document.createElement('div');
+          m.className = 'milestone';
+          m.style.background = t.color;
+          m.addEventListener('mousemove', e => show(e, t));
+          m.addEventListener('mouseleave', hide);
+          td.appendChild(m);
+        } else {
+          const b = document.createElement('div');
+          b.className = 'bar';
+          b.style.background = t.color;
+          b.addEventListener('mousemove', e => show(e, t));
+          b.addEventListener('mouseleave', hide);
+          td.appendChild(b);
+        }
+      }
+      tr.appendChild(td);
+    });
+    body.appendChild(tr);
+  });
+}
+
+function show(e, t) {
+  tip.style.display = 'block';
+  tip.innerHTML = '<strong>' + t.label + '</strong>' + t.note;
+  tip.style.left = (e.clientX + 14) + 'px';
+  tip.style.top = (e.clientY - 10) + 'px';
+}
+function hide() { tip.style.display = 'none'; }
+
+function filter(cat, btn) {
+  document.querySelectorAll('.btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  render(cat);
+}
+
+render('all');
+</script>
+</body>
+</html>
