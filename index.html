@@ -82,7 +82,7 @@
     <div>
       <h1>Plan de proyecto — Módulo de pólizas contables</h1>
       <div class="subtitle">Área contabilidad · Distribuidor de Maquinaria del Sur · Abril – Julio 2026</div>
-      <div class="subtitle" style="margin-top:4px">Coordinadora: analista senior (outsourcing) · Equipo: actuaría + ingeniería en sistemas</div>
+      <div class="subtitle" style="margin-top:4px">Coordinadora: Lucero · Equipo: Raquel (actuaría) + Jair (ingeniería en sistemas)</div>
     </div>
     <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end">
       <a href="kanban.html" style="display:inline-flex;align-items:center;gap:7px;padding:7px 14px;background:var(--text);color:var(--bg);border-radius:8px;font-size:13px;font-weight:500;text-decoration:none;transition:opacity .15s" onmouseover="this.style.opacity='.8'" onmouseout="this.style.opacity='1'">
@@ -98,7 +98,7 @@
     <div class="stat"><div class="stat-label">Tareas activas</div><div class="stat-val">6</div><div class="stat-sub">En progreso · Abr–May</div></div>
     <div class="stat"><div class="stat-label">Bloqueadas externas</div><div class="stat-val">3</div><div class="stat-sub">TI + SAT + consejo</div></div>
     <div class="stat"><div class="stat-label">Entrega objetivo</div><div class="stat-val">Jun</div><div class="stat-sub">Sistema retroalimentado v1</div></div>
-    <div class="stat"><div class="stat-label">Equipo</div><div class="stat-val">3</div><div class="stat-sub">Senior + actuaría + sistemas</div></div>
+    <div class="stat"><div class="stat-label">Equipo</div><div class="stat-val">3</div><div class="stat-sub">Lucero + Raquel + Jair</div></div>
     <div class="stat"><div class="stat-label">Empresa</div><div class="stat-val">Multi</div><div class="stat-sub">Replicable</div></div>
   </div>
 
@@ -165,28 +165,28 @@ document.getElementById('fecha-footer').textContent = new Date().toLocaleDateStr
 
 const TASKS = [
   {section:'Base de datos y catálogos'},
-  {label:'Revisión y limpieza de catálogos BD', sub:'Responsable: actuaría', cat:'bd', color:'#0F6E56', w:[1,1,1,0,0,0,0,0,0,0,0,0,0,0], note:'Validar catálogo limpio de cuentas cargado en BD local. Base para todo el algoritmo.'},
-  {label:'Normalización nomenclatura cuentas', sub:'Responsable: actuaría + senior', cat:'bd', color:'#0F6E56', w:[1,1,0,0,0,0,0,0,0,0,0,0,0,0], note:'Cada cuenta debe tener: clave, descripción y criterio de asignación estandarizados.'},
+  {label:'Revisión y limpieza de catálogos BD', sub:'Responsable: Raquel', cat:'bd', color:'#0F6E56', w:[1,1,1,0,0,0,0,0,0,0,0,0,0,0], note:'Validar catálogo limpio de cuentas cargado en BD local. Base para todo el algoritmo.'},
+  {label:'Normalización nomenclatura cuentas', sub:'Responsable: Raquel + Lucero', cat:'bd', color:'#0F6E56', w:[1,1,0,0,0,0,0,0,0,0,0,0,0,0], note:'Cada cuenta debe tener: clave, descripción y criterio de asignación estandarizados.'},
   {section:'Algoritmo clasificador de pólizas'},
-  {label:'Motor clasificador de conceptos', sub:'Responsable: sistemas + senior', cat:'algoritmo', color:'#534AB7', w:[0,1,1,1,1,0,0,0,0,0,0,0,0,0], note:'Lee monto + concepto/CFDI y asigna número de cuenta según catálogo. Núcleo del sistema.'},
-  {label:'Reglas por uso CFDI y tipo de cliente', sub:'Responsable: sistemas', cat:'algoritmo', color:'#534AB7', w:[0,0,1,1,1,1,0,0,0,0,0,0,0,0], note:'Lógica diferenciada: S01 vs G01/G03, contado vs crédito, con/sin descuento comercial.'},
-  {label:'Generador de póliza descargable', sub:'Responsable: sistemas', cat:'algoritmo', color:'#534AB7', w:[0,0,0,0,1,1,1,0,0,0,0,0,0,0], note:'Salida final: archivo descargable (Excel/PDF) con estructura contable correcta para los contadores.'},
+  {label:'Motor clasificador de conceptos', sub:'Responsable: Jair + Lucero', cat:'algoritmo', color:'#534AB7', w:[0,1,1,1,1,0,0,0,0,0,0,0,0,0], note:'Lee monto + concepto/CFDI y asigna número de cuenta según catálogo. Núcleo del sistema.'},
+  {label:'Reglas por uso CFDI y tipo de cliente', sub:'Responsable: Jair', cat:'algoritmo', color:'#534AB7', w:[0,0,1,1,1,1,0,0,0,0,0,0,0,0], note:'Lógica diferenciada: S01 vs G01/G03, contado vs crédito, con/sin descuento comercial.'},
+  {label:'Generador de póliza descargable', sub:'Responsable: Jair', cat:'algoritmo', color:'#534AB7', w:[0,0,0,0,1,1,1,0,0,0,0,0,0,0], note:'Salida final: archivo descargable (Excel/PDF) con estructura contable correcta para los contadores.'},
   {label:'Pruebas con dataset real Feb–Mar 2026', sub:'Responsable: todo el equipo', cat:'algoritmo', color:'#534AB7', w:[0,0,0,0,0,0,1,1,1,0,0,0,0,0], note:'Usar las 200+ facturas del reporte de DIMASIS para validar asignación de cuentas en casos reales.'},
-  {label:'Revisión y ajuste con contabilidad', sub:'Responsable: senior + contabilidad', cat:'algoritmo', color:'#534AB7', w:[0,0,0,0,0,0,0,0,1,1,0,0,0,0], note:'Sesiones de validación con contadores. Ajustes al algoritmo según observaciones del área.'},
+  {label:'Revisión y ajuste con contabilidad', sub:'Responsable: Lucero + contabilidad', cat:'algoritmo', color:'#534AB7', w:[0,0,0,0,0,0,0,0,1,1,0,0,0,0], note:'Sesiones de validación con contadores. Ajustes al algoritmo según observaciones del área.'},
   {label:'🎯 Entrega sistema v1', sub:'Hito de proyecto', cat:'algoritmo', color:'#534AB7', w:[0,0,0,0,0,0,0,0,0,0,1,0,0,0], milestone:true, note:'Sistema funcionando: clasificador + conciliación + descarga de pólizas. Entrega al área contable.'},
   {section:'Interfaz de usuario para contadores'},
-  {label:'Interfaz alta de cuentas (contadores)', sub:'Responsable: sistemas + senior', cat:'interfaz', color:'#185FA5', w:[0,0,1,1,1,1,0,0,0,0,0,0,0,0], note:'UI donde los contadores agregan nuevas cuentas sin intervención del equipo de datos.'},
-  {label:'Dashboard concentrador integrado', sub:'Responsable: senior (maqueta previa)', cat:'interfaz', color:'#185FA5', w:[0,0,0,1,1,1,1,0,0,0,0,0,0,0], note:'Integrar maqueta visual existente con datos reales del algoritmo y la BD de catálogos.'},
+  {label:'Interfaz alta de cuentas (contadores)', sub:'Responsable: Jair + Lucero', cat:'interfaz', color:'#185FA5', w:[0,0,1,1,1,1,0,0,0,0,0,0,0,0], note:'UI donde los contadores agregan nuevas cuentas sin intervención del equipo de datos.'},
+  {label:'Dashboard concentrador integrado', sub:'Responsable: Lucero (maqueta previa)', cat:'interfaz', color:'#185FA5', w:[0,0,0,1,1,1,1,0,0,0,0,0,0,0], note:'Integrar maqueta visual existente con datos reales del algoritmo y la BD de catálogos.'},
   {section:'Integración TI / DIMASIS'},
   {label:'⏸ Esperar endpoints TI (bloqueado)', sub:'Dependencia: equipo TI', cat:'ti', color:'#888780', w:[1,1,1,1,0,0,0,0,0,0,0,0,0,0], note:'TI comprometió endpoints o despachador JSON. Sin ETA confirmada. Bloquea validación cruzada de montos.', blocker:true},
-  {label:'Integración datos DIMASIS', sub:'Responsable: sistemas + senior', cat:'ti', color:'#993C1D', w:[0,0,0,0,1,1,1,0,0,0,0,0,0,0], note:'Consumir JSON de DIMASIS, comparar montos con catálogo SAT y detectar diferencias entre sistemas.'},
-  {label:'Conciliación DIMASIS vs catálogo SAT', sub:'Responsable: actuaría + sistemas', cat:'ti', color:'#993C1D', w:[0,0,0,0,0,1,1,1,0,0,0,0,0,0], note:'Validar que el importe registrado en DIMASIS cuadre con el monto declarado ante el SAT.'},
+  {label:'Integración datos DIMASIS', sub:'Responsable: Jair + Lucero', cat:'ti', color:'#993C1D', w:[0,0,0,0,1,1,1,0,0,0,0,0,0,0], note:'Consumir JSON de DIMASIS, comparar montos con catálogo SAT y detectar diferencias entre sistemas.'},
+  {label:'Conciliación DIMASIS vs catálogo SAT', sub:'Responsable: Raquel + Jair', cat:'ti', color:'#993C1D', w:[0,0,0,0,0,1,1,1,0,0,0,0,0,0], note:'Validar que el importe registrado en DIMASIS cuadre con el monto declarado ante el SAT.'},
   {section:'Módulo SAT (sujeto a aprobación del consejo)'},
   {label:'⏸ Esperar aprobación consejo e.firma', sub:'Dependencia: consejo directivo', cat:'sat', color:'#888780', w:[1,1,1,1,1,0,0,0,0,0,0,0,0,0], note:'Se requiere autorización del consejo para usar la e.firma y acceder al servicio de descarga masiva del SAT.', blocker:true},
-  {label:'Módulo descarga masiva XML SAT', sub:'Responsable: sistemas (si aprobado)', cat:'sat', color:'#854F0B', w:[0,0,0,0,0,1,1,1,1,0,0,0,0,0], note:'Conexión con servicio SAT, parseo de XMLs, clasificación por área y generación de reportes. Requiere e.firma.'},
-  {label:'Bot scraping proveedor principal', sub:'Responsable: sistemas (paralelo)', cat:'sat', color:'#854F0B', w:[0,0,0,0,0,0,1,1,1,1,0,0,0,0], note:'Scrapy para obtener XML+PDF del proveedor principal automáticamente. No requiere e.firma.'},
+  {label:'Módulo descarga masiva XML SAT', sub:'Responsable: Jair (si aprobado)', cat:'sat', color:'#854F0B', w:[0,0,0,0,0,1,1,1,1,0,0,0,0,0], note:'Conexión con servicio SAT, parseo de XMLs, clasificación por área y generación de reportes. Requiere e.firma.'},
+  {label:'Bot scraping proveedor principal', sub:'Responsable: Jair (paralelo)', cat:'sat', color:'#854F0B', w:[0,0,0,0,0,0,1,1,1,1,0,0,0,0], note:'Scrapy para obtener XML+PDF del proveedor principal automáticamente. No requiere e.firma.'},
   {section:'Soporte post-entrega'},
-  {label:'Soporte y retroalimentación', sub:'Responsable: senior (outsourcing)', cat:'algoritmo', color:'#534AB7', w:[0,0,0,0,0,0,0,0,0,0,0,1,1,1], note:'Ajustes menores, altas de nuevas cuentas, soporte reducido. Objetivo: autonomía del área contable.'},
+  {label:'Soporte y retroalimentación', sub:'Responsable: Lucero (outsourcing)', cat:'algoritmo', color:'#534AB7', w:[0,0,0,0,0,0,0,0,0,0,0,1,1,1], note:'Ajustes menores, altas de nuevas cuentas, soporte reducido. Objetivo: autonomía del área contable.'},
 ];
 
 const tip = document.getElementById('tip');
