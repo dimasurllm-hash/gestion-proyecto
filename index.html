@@ -110,6 +110,7 @@
     <div class="leg"><div class="leg-dot" style="background:#854F0B"></div>SAT (sujeto a aprobación)</div>
     <div class="leg"><div class="leg-dot" style="background:#888780;opacity:.5"></div>Bloqueo externo</div>
     <div class="leg"><div class="leg-dot" style="background:#534AB7;border-radius:50%"></div>Hito de entrega</div>
+    <div class="leg"><div class="leg-dot" style="background:#0D7C9E"></div>Automatización proceso (Lucero)</div>
   </div>
 
   <div class="controls">
@@ -119,6 +120,7 @@
     <button class="btn" onclick="filter('interfaz',this)">Interfaz</button>
     <button class="btn" onclick="filter('ti',this)">Integración TI</button>
     <button class="btn" onclick="filter('sat',this)">SAT</button>
+    <button class="btn" onclick="filter('optimizacion',this)">Optimización proceso</button>
   </div>
 
   <div class="scroll">
@@ -165,10 +167,12 @@ document.getElementById('fecha-footer').textContent = new Date().toLocaleDateStr
 
 const TASKS = [
   {section:'Base de datos y catálogos'},
-  {label:'Revisión y limpieza de catálogos BD', sub:'Responsable: Raquel', cat:'bd', color:'#0F6E56', w:[1,1,1,0,0,0,0,0,0,0,0,0,0,0], note:'Validar catálogo limpio de cuentas cargado en BD local. Base para todo el algoritmo.'},
-  {label:'Normalización nomenclatura cuentas', sub:'Responsable: Raquel + Lucero', cat:'bd', color:'#0F6E56', w:[1,1,0,0,0,0,0,0,0,0,0,0,0,0], note:'Cada cuenta debe tener: clave, descripción y criterio de asignación estandarizados.'},
+  {label:'Revisión y limpieza de catálogos BD', sub:'Responsable: Raquel', cat:'bd', color:'#0F6E56', w:[1,1,0,0,0,0,0,0,0,0,0,0,0,0], note:'Catálogo de cuentas validado y limpio en BD local. Finalizado Abr S2. Base para el algoritmo y las pruebas en entorno web.'},
+  {label:'Normalización nomenclatura cuentas', sub:'Responsable: Raquel + Lucero', cat:'bd', color:'#0F6E56', w:[1,1,0,0,0,0,0,0,0,0,0,0,0,0], note:'Estandarización completada Abr S2. Cada cuenta con clave, descripción y criterio de asignación. Lista para pruebas.'},
   {section:'Algoritmo clasificador de pólizas'},
   {label:'Motor clasificador de conceptos', sub:'Responsable: Jair + Lucero', cat:'algoritmo', color:'#534AB7', w:[0,1,1,1,1,0,0,0,0,0,0,0,0,0], note:'Lee monto + concepto/CFDI y asigna número de cuenta según catálogo. Núcleo del sistema.'},
+  {label:'Pruebas pólizas — entorno web', sub:'Responsable: todo el equipo', cat:'algoritmo', color:'#534AB7', w:[0,1,1,1,1,0,0,0,0,0,0,0,0,0], note:'Validación del motor en entorno web desde Abr S2. Sin esperar endpoint TI: se alimenta con descarga manual de reportes DIMASIS o concentrado XML subido a la webapp.'},
+  {label:'Definición mecanismo — pólizas refacciones', sub:'Responsable: Lucero + Raquel', cat:'algoritmo', color:'#534AB7', w:[0,0,1,1,0,0,0,0,0,0,0,0,0,0], note:'Definir y validar criterios contables para facturas de refacciones. Meta: mecanismo definido antes del cierre de abril, independiente de bloqueos SAT y TI.'},
   {label:'Reglas por uso CFDI y tipo de cliente', sub:'Responsable: Jair', cat:'algoritmo', color:'#534AB7', w:[0,0,1,1,1,1,0,0,0,0,0,0,0,0], note:'Lógica diferenciada: S01 vs G01/G03, contado vs crédito, con/sin descuento comercial.'},
   {label:'Generador de póliza descargable', sub:'Responsable: Jair', cat:'algoritmo', color:'#534AB7', w:[0,0,0,0,1,1,1,0,0,0,0,0,0,0], note:'Salida final: archivo descargable (Excel/PDF) con estructura contable correcta para los contadores.'},
   {label:'Pruebas con dataset real Feb–Mar 2026', sub:'Responsable: todo el equipo', cat:'algoritmo', color:'#534AB7', w:[0,0,0,0,0,0,1,1,1,0,0,0,0,0], note:'Usar las 200+ facturas del reporte de DIMASIS para validar asignación de cuentas en casos reales.'},
@@ -178,7 +182,7 @@ const TASKS = [
   {label:'Interfaz alta de cuentas (contadores)', sub:'Responsable: Jair + Lucero', cat:'interfaz', color:'#185FA5', w:[0,0,1,1,1,1,0,0,0,0,0,0,0,0], note:'UI donde los contadores agregan nuevas cuentas sin intervención del equipo de datos.'},
   {label:'Dashboard concentrador integrado', sub:'Responsable: Lucero (maqueta previa)', cat:'interfaz', color:'#185FA5', w:[0,0,0,1,1,1,1,0,0,0,0,0,0,0], note:'Integrar maqueta visual existente con datos reales del algoritmo y la BD de catálogos.'},
   {section:'Integración TI / DIMASIS'},
-  {label:'⏸ Esperar endpoints TI (bloqueado)', sub:'Dependencia: equipo TI', cat:'ti', color:'#888780', w:[1,1,1,1,0,0,0,0,0,0,0,0,0,0], note:'TI comprometió endpoints o despachador JSON. Sin ETA confirmada. Bloquea validación cruzada de montos.', blocker:true},
+  {label:'⏸ Esperar endpoints TI (bloqueado)', sub:'Dependencia: equipo TI', cat:'ti', color:'#888780', w:[1,1,1,1,0,0,0,0,0,0,0,0,0,0], note:'TI comprometió endpoints o despachador JSON. Sin ETA confirmada. Workaround activo: el sistema se alimenta con descarga manual de reportes DIMASIS o concentrado XML subido a la webapp.', blocker:true},
   {label:'Integración datos DIMASIS', sub:'Responsable: Jair + Lucero', cat:'ti', color:'#993C1D', w:[0,0,0,0,1,1,1,0,0,0,0,0,0,0], note:'Consumir JSON de DIMASIS, comparar montos con catálogo SAT y detectar diferencias entre sistemas.'},
   {label:'Conciliación DIMASIS vs catálogo SAT', sub:'Responsable: Raquel + Jair', cat:'ti', color:'#993C1D', w:[0,0,0,0,0,1,1,1,0,0,0,0,0,0], note:'Validar que el importe registrado en DIMASIS cuadre con el monto declarado ante el SAT.'},
   {section:'Módulo SAT (sujeto a aprobación del consejo)'},
@@ -187,6 +191,13 @@ const TASKS = [
   {label:'Bot scraping proveedor principal', sub:'Responsable: Jair (paralelo)', cat:'sat', color:'#854F0B', w:[0,0,0,0,0,0,1,1,1,1,0,0,0,0], note:'Scrapy para obtener XML+PDF del proveedor principal automáticamente. No requiere e.firma.'},
   {section:'Soporte post-entrega'},
   {label:'Soporte y retroalimentación', sub:'Responsable: Lucero (outsourcing)', cat:'algoritmo', color:'#534AB7', w:[0,0,0,0,0,0,0,0,0,0,0,1,1,1], note:'Ajustes menores, altas de nuevas cuentas, soporte reducido. Objetivo: autonomía del área contable.'},
+  {section:'Automatización proceso manual (Lucero)'},
+  {label:'Bot descarga facturas — JD / Interfactura', sub:'Responsable: Lucero', cat:'optimizacion', color:'#0D7C9E', w:[1,1,0,0,0,0,0,0,0,0,0,0,0,0], note:'Bot Scrapy para descarga automática de facturas XML+PDF desde Interfactura. En producción desde Abr S2. Base del flujo de documentos fiscales.'},
+  {label:'Webapp: carga reportes DIMASIS + comparativa', sub:'Responsable: Lucero', cat:'optimizacion', color:'#0D7C9E', w:[0,1,1,1,1,0,0,0,0,0,0,0,0,0], note:'Interfaz web para subir reportes DIMASIS y comparar contra facturas descargadas. Apoya el ligado manual del área sin depender del endpoint TI.'},
+  {label:'Webapp: actualización reportes Sheets', sub:'Responsable: Lucero', cat:'optimizacion', color:'#0D7C9E', w:[0,0,1,1,1,0,0,0,0,0,0,0,0,0], note:'Actualización automática de reportes en Google Sheets desde la webapp. Elimina captura manual por el área.'},
+  {label:'Webapp: análisis de pedidos + dashboards', sub:'Responsable: Lucero', cat:'optimizacion', color:'#0D7C9E', w:[0,0,0,1,1,1,0,0,0,0,0,0,0,0], note:'Generación de archivos de análisis de pedidos y actualización de dashboards. Todo desde la misma webapp.'},
+  {label:'⏸ Bloqueo: ligado manual en DIMASIS', sub:'Dependencia: entrega proceso automatizado', cat:'optimizacion', color:'#888780', w:[1,1,1,1,1,0,0,0,0,0,0,0,0,0], note:'No es posible automatizar el ligado en DIMASIS. Se desbloquea al entregar la webapp completa. El equipo proporciona herramienta de apoyo, no absorbe el proceso del área.', blocker:true},
+  {label:'🎯 Entrega proceso automatizado', sub:'Hito: desbloqueo proceso manual', cat:'optimizacion', color:'#0D7C9E', w:[0,0,0,0,0,0,1,0,0,0,0,0,0,0], milestone:true, note:'Entrega de webapp con bot, comparativa DIMASIS, Sheets y dashboards. Habilita al área para operar sin soporte continuo del equipo.'},
 ];
 
 const tip = document.getElementById('tip');

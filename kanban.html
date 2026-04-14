@@ -16,6 +16,7 @@
     --purple-bg: #eeedfe; --purple: #534ab7;
     --radius: 8px; --radius-lg: 12px;
     --col-w: 240px;
+    --opt-bg: #d0f0f5; --opt: #0a6b85;
   }
   @media (prefers-color-scheme: dark) {
     :root {
@@ -27,6 +28,7 @@
       --ok-bg: #173404; --ok: #c0dd97;
       --info-bg: #042c53; --info: #85b7eb;
       --purple-bg: #26215c; --purple: #afa9ec;
+      --opt-bg: #052c35; --opt: #6cd4e8;
     }
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -46,6 +48,7 @@
   .risk-alto { background: var(--danger-bg); color: var(--danger); }
   .risk-medio { background: var(--warn-bg); color: var(--warn); }
   .risk-bajo { background: var(--ok-bg); color: var(--ok); }
+  .b-opt { background: var(--opt-bg); color: var(--opt); }
   .board { display: flex; gap: 12px; padding: 1.25rem 1.5rem; overflow-x: auto; min-height: calc(100vh - 80px); align-items: flex-start; }
   .col { background: var(--bg2); border-radius: var(--radius-lg); border: 0.5px solid var(--border); width: var(--col-w); min-width: var(--col-w); flex-shrink: 0; display: flex; flex-direction: column; max-height: calc(100vh - 110px); }
   .col-header { padding: .75rem 1rem .5rem; border-bottom: 0.5px solid var(--border); flex-shrink: 0; }
@@ -88,6 +91,7 @@
       <button class="btn" onclick="applyFilter('interfaz',this)">Interfaz</button>
       <button class="btn" onclick="applyFilter('ti',this)">TI / DIMASIS</button>
       <button class="btn" onclick="applyFilter('sat',this)">SAT</button>
+      <button class="btn" onclick="applyFilter('optimizacion',this)">Optimización</button>
     </div>
     <a href="index.html" style="display:inline-flex;align-items:center;gap:7px;padding:7px 14px;background:var(--text);color:var(--bg);border-radius:8px;font-size:13px;font-weight:500;text-decoration:none;white-space:nowrap;transition:opacity .15s" onmouseover="this.style.opacity='.8'" onmouseout="this.style.opacity='1'">
       <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style="flex-shrink:0"><rect x="1" y="1" width="12" height="2.5" rx="1" fill="currentColor"/><rect x="1" y="5.5" width="8" height="2.5" rx="1" fill="currentColor" opacity=".7"/><rect x="1" y="10" width="10" height="2.5" rx="1" fill="currentColor" opacity=".4"/></svg>
@@ -99,7 +103,7 @@
 <div class="board" id="board"></div>
 
 <div class="footer">
-  <span>Coordinadora: Lucero · Equipo: Raquel (actuaría) + Jair (ingeniería en sistemas)</span>
+  <span>Coordinadora: Lucero · Equipo: Raquel (actuaría) + Jair (ingeniería en sistemas) · Automatización proceso: Lucero</span>
   <span>Haz clic en cada tarjeta para ver el detalle completo</span>
 </div>
 
@@ -117,10 +121,12 @@ const COLS = [
 const TASKS = [
   // BD / catálogos
   { col:'done',     cat:'bd',        badge:'b-bd',   title:'Inserción inicial de catálogos BD',         who:'Raquel',           dates:'Mar 2026',       note:'Datos limpios de catálogos de cuentas insertados en BD local. Base para el algoritmo.' },
-  { col:'progress', cat:'bd',        badge:'b-bd',   title:'Revisión y limpieza catálogos',             who:'Raquel',           dates:'Abr S1–S3',      note:'Validar que cada cuenta tenga clave, descripción y criterio de asignación correcto.', risk:'bajo' },
-  { col:'progress', cat:'bd',        badge:'b-bd',   title:'Normalización nomenclatura cuentas',        who:'Raquel + Lucero',  dates:'Abr S1–S2',      note:'Estandarizar formato de claves contables para que el algoritmo las reconozca sin ambigüedad.' },
+  { col:'done',     cat:'bd',        badge:'b-bd',   title:'Revisión y limpieza catálogos',             who:'Raquel',           dates:'Abr S1–S2',      note:'Catálogo de cuentas validado. Cada cuenta con clave, descripción y criterio de asignación. Finalizado Abr S2.' },
+  { col:'done',     cat:'bd',        badge:'b-bd',   title:'Normalización nomenclatura cuentas',        who:'Raquel + Lucero',  dates:'Abr S1–S2',      note:'Estandarización completada Abr S2. Claves contables listas para el algoritmo.' },
   // Algoritmo
   { col:'progress', cat:'algoritmo', badge:'b-algo', title:'Motor clasificador de conceptos/CFDI',      who:'Jair + Lucero',  dates:'Abr S2 – May S1',note:'Lee monto + concepto del XML y asigna número de cuenta. Diferencia S01/G01/G03, contado/crédito, con/sin descuento.', risk:'medio' },
+  { col:'progress', cat:'algoritmo', badge:'b-algo', title:'Pruebas pólizas — entorno web',             who:'todo el equipo', dates:'Abr S2 – May S1', note:'Validación del motor en entorno web desde Abr S2. Sin esperar endpoint TI: alimentado con reportes DIMASIS descargados o XML concentrado.', risk:'bajo' },
+  { col:'progress', cat:'algoritmo', badge:'b-algo', title:'Definición mecanismo — pólizas refacciones',who:'Lucero + Raquel', dates:'Abr S3–S4',       note:'Criterios contables para facturas de refacciones. Meta: mecanismo bien definido antes del cierre de abril.' },
   { col:'backlog',  cat:'algoritmo', badge:'b-algo', title:'Reglas por uso CFDI y tipo cliente',        who:'Jair',           dates:'Abr S3 – May S2',note:'Lógica diferenciada para clientes con RFC vs XAXX, crédito vs contado, múltiples sucursales.' },
   { col:'backlog',  cat:'algoritmo', badge:'b-algo', title:'Generador de póliza descargable',           who:'Jair',           dates:'May S1–S3',      note:'Salida final en Excel o PDF con estructura contable correcta. Los contadores lo descargan desde el dashboard.' },
   { col:'backlog',  cat:'algoritmo', badge:'b-algo', title:'Pruebas con dataset real Feb–Mar 2026',     who:'todo el equipo',     dates:'May S3 – Jun S1',note:'200+ facturas del reporte DIMASIS. Validar asignación de cuentas, detección de descuentos comerciales y notas de crédito.', risk:'medio' },
@@ -134,13 +140,20 @@ const TASKS = [
   { col:'backlog',  cat:'interfaz',  badge:'b-ui',   title:'Integración dashboard con datos reales',   who:'Jair',           dates:'May S1–S4',      note:'Conectar el dashboard existente con los datos del algoritmo, BD de catálogos y resultados de conciliación.' },
   { col:'backlog',  cat:'interfaz',  badge:'b-ui',   title:'Integración bot interfactura',   who:'Jair + Lucero',           dates:'May S1–S4',      note:'Realizar una interfaz grafica para el usuario para permitirles la descarga masiva de documentos mediante el bot scrapy de interfactura' },
   // TI
-  { col:'blocked',  cat:'ti',        badge:'b-ti',   title:'Endpoints / JSON despachador DIMASIS',     who:'Equipo TI',          dates:'Sin ETA',        note:'TI se comprometió a entregar endpoints o despachador JSON para flujo diario. Sin fecha confirmada. Bloquea validación cruzada.', blocked:true, risk:'alto' },
+  { col:'blocked',  cat:'ti',        badge:'b-ti',   title:'Endpoints / JSON despachador DIMASIS',     who:'Equipo TI',          dates:'Sin ETA',        note:'TI sin fecha confirmada. Workaround activo: el sistema se alimenta con descarga manual de reportes DIMASIS o XML concentrado subido a la webapp. No bloquea el avance actual.', blocked:true, risk:'alto' },
   { col:'backlog',  cat:'ti',        badge:'b-ti',   title:'Integración datos DIMASIS',                who:'Jair + Lucero',  dates:'May S1–S3',      note:'Consumir JSON de DIMASIS, comparar montos con catálogo SAT. Detectar diferencias entre sistemas. Depende de TI.' },
   { col:'backlog',  cat:'ti',        badge:'b-ti',   title:'Conciliación DIMASIS vs catálogo SAT',     who:'Raquel + Jair',dates:'May S2 – Jun S1',note:'Validar que el importe en DIMASIS cuadre con el monto declarado ante el SAT. Generar reporte de diferencias.' },
   // SAT
   { col:'blocked',  cat:'sat',       badge:'b-sat',  title:'Aprobación consejo — e.firma SAT',        who:'Consejo directivo',  dates:'Pendiente',      note:'Sin esta aprobación no se puede acceder al servicio de descarga masiva de XML del SAT. El resto del sistema no depende de esto.', blocked:true, risk:'alto' },
   { col:'backlog',  cat:'sat',       badge:'b-sat',  title:'Módulo descarga masiva XML SAT',           who:'Jair',           dates:'May S2 – Jun S1',note:'Conexión con servicio SAT, parseo de XMLs, clasificación por área. Requiere e.firma aprobada por consejo.' },
   { col:'backlog',  cat:'sat',       badge:'b-sat',  title:'Bot scraping proveedor principal',         who:'Jair',           dates:'May S3 – Jun S2',note:'Scrapy para obtener XML + PDF del proveedor principal automáticamente. No requiere e.firma; puede iniciar antes.' },
+  // Automatización proceso manual — Lucero
+  { col:'progress', cat:'optimizacion', badge:'b-opt', title:'Bot descarga facturas JD / Interfactura',   who:'Lucero',         dates:'Abr S1–S2',      note:'Bot Scrapy en producción. Descarga automática de XML+PDF desde Interfactura. Base del flujo de documentos fiscales del proceso manual.' },
+  { col:'progress', cat:'optimizacion', badge:'b-opt', title:'Webapp: carga reportes DIMASIS + comparativa', who:'Lucero',      dates:'Abr S2 – May S1', note:'Interfaz web para subir reportes DIMASIS y comparar contra facturas descargadas. Apoya el ligado manual del área sin depender del endpoint TI.', risk:'bajo' },
+  { col:'backlog',  cat:'optimizacion', badge:'b-opt', title:'Webapp: actualización reportes Sheets',     who:'Lucero',         dates:'Abr S3 – May S2', note:'Actualización automática de Google Sheets desde la webapp. Elimina captura manual de datos por el área.' },
+  { col:'backlog',  cat:'optimizacion', badge:'b-opt', title:'Webapp: análisis de pedidos + dashboards',  who:'Lucero',         dates:'Abr S4 – May S3', note:'Generación de archivos de análisis de pedidos y actualización de dashboards, todo desde la misma webapp.' },
+  { col:'blocked',  cat:'optimizacion', badge:'b-opt', title:'Ligado manual en DIMASIS',                  who:'Área operativa', dates:'Hasta entrega webapp', note:'No es posible automatizar el ligado en DIMASIS. Se desbloquea cuando se entregue la webapp completa. El equipo proporciona herramienta de apoyo, no absorbe el proceso del área.', blocked:true, risk:'medio' },
+  { col:'backlog',  cat:'optimizacion', badge:'b-opt', title:'🎯 Entrega proceso automatizado',           who:'Lucero',         dates:'May S3',          note:'Entrega webapp completa: bot + comparativa DIMASIS + Sheets + dashboards. Habilita al área para operar de forma autónoma. Desbloquea el ligado manual.', milestone:true },
 ];
 
 let activeFilter = 'all';
@@ -195,7 +208,7 @@ function renderBoard() {
 }
 
 function catLabel(c) {
-  return {algoritmo:'Algoritmo',bd:'BD / catálogos',interfaz:'Interfaz',ti:'TI / DIMASIS',sat:'SAT'}[c] || c;
+  return {algoritmo:'Algoritmo',bd:'BD / catálogos',interfaz:'Interfaz',ti:'TI / DIMASIS',sat:'SAT',optimizacion:'Optimización'}[c] || c;
 }
 
 renderBoard();
